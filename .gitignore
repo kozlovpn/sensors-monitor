@@ -1,0 +1,33 @@
+@bjf.log.dir.default@
+#java specific
+*.class
+target/
+test-output/
+test-output/Default/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+#.gitignore
+.classpath
+.project
+network_mapping.config
+.settings/
+activemq-data/
+.DS_Store
+.springbeans
+#javadoc
+doc/
+dependency-reduced-pom.xml
+#Embedded hive
+metastore_db
+build
+#idea
+.idea/
+*.iml
+pmip/
+*.log
+*.vagrant
+tvs-store/src/main/webapp/META-INF/MANIFEST.MF
+tvs-tests-integration/tvs-tests-testng/src/test/resources/
