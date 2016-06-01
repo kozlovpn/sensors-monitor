@@ -1,8 +1,9 @@
 package gui;
 
-import gui.GUI;
 import jssc.*;
 import listener.PortReader;
+
+import java.util.Arrays;
 
 /**
  * Created by pavel on 5/29/16.
@@ -13,6 +14,7 @@ public class ComPortTest {
 
     public static void openPortAndGetData() {
         //Передаём в конструктор имя порта
+        System.out.println(Arrays.asList(SerialPortList.getPortNames()));
         serialPort = new SerialPort("/dev/ttyUSB0");
         try {
             //Открываем порт
@@ -32,6 +34,14 @@ public class ComPortTest {
         }
         catch (SerialPortException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    public static void closePort() {
+        try {
+            serialPort.closePort();
+        } catch (SerialPortException e) {
+            e.printStackTrace();
         }
     }
 }

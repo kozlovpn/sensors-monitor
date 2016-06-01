@@ -22,30 +22,34 @@ public class ResultParser {
         String[] dataSet = packetSet[2].trim().split(" ");
         String[] valueSet = getValueSet(dataSet);
         System.out.println(Arrays.asList(valueSet));
-        if (packetSet[1].contains("sensor")) {
-            sensorPacket.setSrcId(Long.valueOf(valueSet[0]));
-            sensorPacket.setSeq(Integer.valueOf(valueSet[1]));
-            sensorPacket.setRfTemperature(Float.valueOf(valueSet[2]));
-            sensorPacket.setTemperature(Float.valueOf(valueSet[3]));
-            sensorPacket.setHumidity(Float.valueOf(valueSet[4]));
-            sensorPacket.setVoltage(Float.valueOf(valueSet[5]));
-        } else if (packetSet[1].contains("neighborhood")) {
-            String[] valueSet2 = getValueSet(packetSet[3].split(" "));
-            neighborPacket.setSrcId(Long.valueOf(valueSet[0]));
-            neighborPacket.setSeq(Integer.valueOf(valueSet[1]));
-            neighborPacket.setNodeId(Long.valueOf(valueSet2[0]));
-            neighborPacket.setlQout(Integer.valueOf(valueSet2[1]));
-            neighborPacket.setlQin(Integer.valueOf(valueSet2[2]));
-            neighborPacket.setRssi(Integer.valueOf(valueSet2[3]));
-            neighborPacket.setElapseTime(Integer.valueOf(valueSet2[4]));
-        } else if (packetSet[1].contains("Neighbors")) {
-            System.out.println(packet);
-            neighborCount = Integer.valueOf(getValue(packetSet[1]));
-            neighborPacket.setNodeId(Long.valueOf(valueSet[0]));
-            neighborPacket.setlQout(Integer.valueOf(valueSet[1]));
-            neighborPacket.setlQin(Integer.valueOf(valueSet[2]));
-            neighborPacket.setRssi(Integer.valueOf(valueSet[3]));
-            neighborPacket.setElapseTime(Integer.valueOf(valueSet[4]));
+        try {
+            if (packetSet[1].contains("sensor")) {
+                sensorPacket.setSrcId(Long.valueOf(valueSet[0]));
+                sensorPacket.setSeq(Integer.valueOf(valueSet[1]));
+                sensorPacket.setRfTemperature(Float.valueOf(valueSet[2]));
+                sensorPacket.setTemperature(Float.valueOf(valueSet[3]));
+                sensorPacket.setHumidity(Float.valueOf(valueSet[4]));
+                sensorPacket.setVoltage(Float.valueOf(valueSet[5]));
+            } else if (packetSet[1].contains("neighborhood")) {
+                String[] valueSet2 = getValueSet(packetSet[3].split(" "));
+                neighborPacket.setSrcId(Long.valueOf(valueSet[0]));
+                neighborPacket.setSeq(Integer.valueOf(valueSet[1]));
+                neighborPacket.setNodeId(Long.valueOf(valueSet2[0]));
+                neighborPacket.setlQout(Integer.valueOf(valueSet2[1]));
+                neighborPacket.setlQin(Integer.valueOf(valueSet2[2]));
+                neighborPacket.setRssi(Integer.valueOf(valueSet2[3]));
+                neighborPacket.setElapseTime(Integer.valueOf(valueSet2[4]));
+            } else if (packetSet[1].contains("Neighbors")) {
+                System.out.println(packet);
+                neighborCount = Integer.valueOf(getValue(packetSet[1]));
+                neighborPacket.setNodeId(Long.valueOf(valueSet[0]));
+                neighborPacket.setlQout(Integer.valueOf(valueSet[1]));
+                neighborPacket.setlQin(Integer.valueOf(valueSet[2]));
+                neighborPacket.setRssi(Integer.valueOf(valueSet[3]));
+                neighborPacket.setElapseTime(Integer.valueOf(valueSet[4]));
+            }
+        } catch (NumberFormatException e) {
+            //nothing to do
         }
     }
 
