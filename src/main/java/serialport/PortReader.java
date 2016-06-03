@@ -1,4 +1,4 @@
-package listener;
+package serialport;
 
 import jssc.SerialPort;
 import jssc.SerialPortEvent;

@@ -1,5 +1,12 @@
 package gui;
 
+import javafx.geometry.HPos;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.paint.Color;
+import jssc.SerialNativeInterface;
+import serialport.ComPort;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -8,14 +15,8 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -34,15 +35,16 @@ public class GUI extends Application {
     private Text humidity = new Text("Init...");
     private Text voltage = new Text("Init...");
     private String DEGREE = "\u00b0С";
+    public static final String portName = "";
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        /*final Label status = new Label("Loading");
+        /*final Label temperature = new Label("Loading");
         final Timeline timeline = new Timeline(
                 new KeyFrame(Duration.ZERO, new EventHandler() {
                     public void handle(Event event) {
-                        String statusText = status.getText();
-                        status.setText(
+                        String statusText = temperature.getText();
+                        temperature.setText(
                                 ("Loading . . .".equals(statusText))
                                         ? "Loading ."
                                         : statusText + " ."
@@ -51,7 +53,8 @@ public class GUI extends Application {
                 }),
                 new KeyFrame(Duration.millis(1000))
         );
-        timeline.setCycleCount(Timeline.INDEFINITE);*/
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timeline.play();*/
 
 
         primaryStage.setTitle("MeshLogic Sensors Monitor");
@@ -107,7 +110,7 @@ public class GUI extends Application {
         hbBtn.getChildren().add(btn);
         grid.add(hbBtn, 1, 4);
         final Text actiontarget = new Text();
-        grid.add(actiontarget, 1, 5);
+        grid.add(actiontarget, 0, 5, 2, 1);
         actiontarget.setFont(Font.font("Tahoma", FontWeight.LIGHT, 20));
         btn.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
@@ -115,19 +118,65 @@ public class GUI extends Application {
                 actiontarget.setText("Dew Point is " + calculateDewPoint() + DEGREE);
             }
         });
+
         Scene scene = new Scene(grid, 500, 475);
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        if (ComPort.isMultiplePorts.get()) {
+            openWindowForEnterPort();
+        }
     }
 
     @Override
     public void stop() {
-        ComPortTest.closePort();
+        ComPort.closePort();
     }
 
     public static void main(String[] args) {
-        ComPortTest.openPortAndGetData();
+        ComPort.checkMultiplePorts();
         launch(args);
+    }
+
+    public static void openWindowForEnterPort() {
+        final Stage stage = new Stage();
+        stage.setTitle("Enter port name");
+        final GridPane grid = new GridPane();
+        grid.setAlignment(Pos.TOP_CENTER);
+        grid.setHgap(10);
+        grid.setVgap(30);
+        grid.setPadding(new Insets(10, 10, 10, 10));
+
+        Label label = new Label("Your computer has multiple serial port connections.\n" +
+                "Please enter the correct serial port name\nin which the MeshLogic device is connected:");
+        grid.add(label, 0, 0);
+        final TextField textField = new TextField();
+        grid.add(textField, 0, 1);
+        final Text error = new Text();
+        error.setFill(Color.RED);
+        grid.add(error, 0, 2);
+        Button button = new Button("OK");
+        button.setMaxWidth(100);
+        GridPane.setHalignment(button, HPos.CENTER);
+        grid.add(button, 0, 3);
+        final Scene scene = new Scene(grid, 380, 250);
+        stage.setScene(scene);
+        button.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                String portName = textField.getText();
+                int osType = SerialNativeInterface.getOsType();
+                if (!portName.equals("") && portName.matches("^(ttyUSB|COM)\\d+$") && ((osType == SerialNativeInterface.OS_WINDOWS
+                        && portName.contains("COM")) || (osType == SerialNativeInterface.OS_LINUX && portName.contains("tty")))) {
+                    ComPort.openPortAndGetData(portName);
+                    stage.close();
+                } else if (portName.equals("")) {
+                    error.setText("Please enter port name!");
+                } else {
+                    error.setText("Invalid port name!");
+                }
+            }
+        });
+        stage.show();
     }
 
     private String calculateDewPoint() {

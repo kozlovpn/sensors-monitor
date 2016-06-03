@@ -1,21 +1,28 @@
-package gui;
+package serialport;
 
+import gui.GUI;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import jssc.*;
-import listener.PortReader;
-
-import java.util.Arrays;
 
 /**
  * Created by pavel on 5/29/16.
  */
-public class ComPortTest {
+public class ComPort {
 
     private static SerialPort serialPort;
+    public static BooleanProperty isMultiplePorts = new SimpleBooleanProperty();
 
-    public static void openPortAndGetData() {
+    public static void openPortAndGetData(String portName) {
         //Передаём в конструктор имя порта
-        System.out.println(Arrays.asList(SerialPortList.getPortNames()));
-        serialPort = new SerialPort("/dev/ttyUSB0");
+        if (SerialNativeInterface.getOsType() == SerialNativeInterface.OS_WINDOWS) {
+            serialPort = new SerialPort(portName);
+        } else if (portName.contains("dev")) {
+            serialPort = new SerialPort(portName);
+        } else {
+            serialPort = new SerialPort("/dev/" + portName);
+        }
+
         try {
             //Открываем порт
             serialPort.openPort();
@@ -37,11 +44,21 @@ public class ComPortTest {
         }
     }
 
+    public static void checkMultiplePorts() {
+        if (SerialPortList.getPortNames().length == 1) {
+            openPortAndGetData(SerialPortList.getPortNames()[0]);
+        } else {
+            isMultiplePorts.setValue(true);
+        }
+    }
+
     public static void closePort() {
-        try {
-            serialPort.closePort();
-        } catch (SerialPortException e) {
-            e.printStackTrace();
+        if (serialPort != null && serialPort.isOpened()) {
+            try {
+                serialPort.closePort();
+            } catch (SerialPortException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
