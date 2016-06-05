@@ -1,6 +1,5 @@
-package serialport;
+package com.pkozlov.serialport;
 
-import gui.GUI;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import jssc.*;
@@ -11,7 +10,8 @@ import jssc.*;
 public class ComPort {
 
     private static SerialPort serialPort;
-    public static BooleanProperty isMultiplePorts = new SimpleBooleanProperty();
+    public static BooleanProperty isMultiplePorts = new SimpleBooleanProperty(false);
+    public static BooleanProperty isNoDevices = new SimpleBooleanProperty(false);
 
     public static void openPortAndGetData(String portName) {
         //Передаём в конструктор имя порта
@@ -45,9 +45,16 @@ public class ComPort {
     }
 
     public static void checkMultiplePorts() {
-        if (SerialPortList.getPortNames().length == 1) {
+        int portCounts = SerialPortList.getPortNames().length;
+        if (portCounts == 1) {
+            isNoDevices.setValue(false);
+            isMultiplePorts.setValue(false);
             openPortAndGetData(SerialPortList.getPortNames()[0]);
+        } else if (portCounts == 0) {
+            isNoDevices.setValue(true);
+            isMultiplePorts.setValue(false);
         } else {
+            isNoDevices.setValue(false);
             isMultiplePorts.setValue(true);
         }
     }

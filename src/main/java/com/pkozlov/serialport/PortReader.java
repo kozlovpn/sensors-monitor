@@ -1,10 +1,10 @@
-package serialport;
+package com.pkozlov.serialport;
 
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
-import results.ResultParser;
+import com.pkozlov.results.ResultParser;
 
 import java.io.UnsupportedEncodingException;
 

@@ -1,4 +1,4 @@
-package results.packets;
+package com.pkozlov.results.packets;
 
 import javafx.beans.property.*;
 

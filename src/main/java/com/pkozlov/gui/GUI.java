@@ -1,12 +1,12 @@
-package gui;
+package com.pkozlov.gui;
 
+import com.pkozlov.serialport.ComPort;
 import javafx.geometry.HPos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import jssc.SerialNativeInterface;
-import serialport.ComPort;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -21,7 +21,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import results.ResultParser;
+import com.pkozlov.results.ResultParser;
 
 import java.text.DecimalFormat;
 
@@ -30,33 +30,14 @@ import java.text.DecimalFormat;
  */
 public class GUI extends Application {
 
-    private Text rfTemperature = new Text("Init...");
     private Text temperature = new Text("Init...");
     private Text humidity = new Text("Init...");
     private Text voltage = new Text("Init...");
     private String DEGREE = "\u00b0С";
-    public static final String portName = "";
+    private final Stage stageForEnterPort = new Stage();
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        /*final Label temperature = new Label("Loading");
-        final Timeline timeline = new Timeline(
-                new KeyFrame(Duration.ZERO, new EventHandler() {
-                    public void handle(Event event) {
-                        String statusText = temperature.getText();
-                        temperature.setText(
-                                ("Loading . . .".equals(statusText))
-                                        ? "Loading ."
-                                        : statusText + " ."
-                        );
-                    }
-                }),
-                new KeyFrame(Duration.millis(1000))
-        );
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        timeline.play();*/
-
-
         primaryStage.setTitle("MeshLogic Sensors Monitor");
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
@@ -123,9 +104,26 @@ public class GUI extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        if (ComPort.isMultiplePorts.get()) {
-            openWindowForEnterPort();
-        }
+        ComPort.isNoDevices.addListener(new ChangeListener<Boolean>() {
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                if (newValue.equals(false)) {
+                    stageForEnterPort.close();
+                } else {
+                    openWindowToConnectDevice();
+                }
+            }
+        });
+
+        ComPort.isMultiplePorts.addListener(new ChangeListener<Boolean>() {
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                if (newValue.equals(false)) {
+                    stageForEnterPort.close();
+                } else {
+                    openWindowForEnterPort();
+                }
+            }
+        });
+        ComPort.checkMultiplePorts();
     }
 
     @Override
@@ -134,33 +132,64 @@ public class GUI extends Application {
     }
 
     public static void main(String[] args) {
-        ComPort.checkMultiplePorts();
         launch(args);
     }
 
-    public static void openWindowForEnterPort() {
-        final Stage stage = new Stage();
-        stage.setTitle("Enter port name");
+    public void openWindowToConnectDevice() {
+        final GridPane grid2 = new GridPane();
+        grid2.setAlignment(Pos.TOP_CENTER);
+        grid2.setHgap(10);
+        grid2.setVgap(30);
+        grid2.setPadding(new Insets(10, 10, 10, 10));
+        final Scene scene1 = new Scene(grid2, 350, 120);
+
+        Label label = new Label();
+        final Button button = new Button();
+        GridPane.setHalignment(button, HPos.CENTER);
+
+        stageForEnterPort.setTitle("Connect device");
+        label.setText("Please connect MeshLogic device and try again!");
+        grid2.add(label, 0, 0);
+        button.setText("Try again");
+        button.setMaxWidth(100);
+        grid2.add(button, 0, 2);
+        stageForEnterPort.setScene(scene1);
+
+        button.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                ComPort.checkMultiplePorts();
+            }
+        });
+
+        stageForEnterPort.show();
+    }
+
+    public void openWindowForEnterPort() {
         final GridPane grid = new GridPane();
         grid.setAlignment(Pos.TOP_CENTER);
         grid.setHgap(10);
         grid.setVgap(30);
         grid.setPadding(new Insets(10, 10, 10, 10));
 
-        Label label = new Label("Your computer has multiple serial port connections.\n" +
-                "Please enter the correct serial port name\nin which the MeshLogic device is connected:");
-        grid.add(label, 0, 0);
+        final Scene scene = new Scene(grid, 380, 250);
+        Label label = new Label();
+        final Button button = new Button();
         final TextField textField = new TextField();
-        grid.add(textField, 0, 1);
         final Text error = new Text();
         error.setFill(Color.RED);
-        grid.add(error, 0, 2);
-        Button button = new Button("OK");
-        button.setMaxWidth(100);
         GridPane.setHalignment(button, HPos.CENTER);
+
+        stageForEnterPort.setTitle("Enter port name");
+        label.setText("Your computer has multiple serial port connections.\n" +
+                "Please enter the correct serial port name\nin which the MeshLogic device is connected:");
+        grid.add(label, 0, 0);
+        grid.add(textField, 0, 1);
+        button.setText("OK");
+        grid.add(error, 0, 2);
+        button.setMaxWidth(100);
         grid.add(button, 0, 3);
-        final Scene scene = new Scene(grid, 380, 250);
-        stage.setScene(scene);
+        stageForEnterPort.setScene(scene);
+
         button.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
                 String portName = textField.getText();
@@ -168,7 +197,7 @@ public class GUI extends Application {
                 if (!portName.equals("") && portName.matches("^(ttyUSB|COM)\\d+$") && ((osType == SerialNativeInterface.OS_WINDOWS
                         && portName.contains("COM")) || (osType == SerialNativeInterface.OS_LINUX && portName.contains("tty")))) {
                     ComPort.openPortAndGetData(portName);
-                    stage.close();
+                    stageForEnterPort.close();
                 } else if (portName.equals("")) {
                     error.setText("Please enter port name!");
                 } else {
@@ -176,7 +205,8 @@ public class GUI extends Application {
                 }
             }
         });
-        stage.show();
+
+        stageForEnterPort.show();
     }
 
     private String calculateDewPoint() {

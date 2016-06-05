@@ -1,7 +1,7 @@
-package results;
+package com.pkozlov.results;
 
-import results.packets.NeighborhoodPacket;
-import results.packets.SensorPacket;
+import com.pkozlov.results.packets.NeighborhoodPacket;
+import com.pkozlov.results.packets.SensorPacket;
 
 import java.util.*;
 
