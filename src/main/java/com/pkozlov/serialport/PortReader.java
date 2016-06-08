@@ -1,5 +1,6 @@
 package com.pkozlov.serialport;
 
+import com.pkozlov.logger.AppLog;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -7,6 +8,7 @@ import jssc.SerialPortException;
 import com.pkozlov.results.ResultParser;
 
 import java.io.UnsupportedEncodingException;
+import java.util.logging.Logger;
 
 /**
  * Created by pavel on 5/29/16.
@@ -15,9 +17,11 @@ public class PortReader implements SerialPortEventListener {
 
     private static SerialPort serialPort;
     private String data = "";
+    private Logger logger;
 
     public PortReader(SerialPort port) {
         serialPort = port;
+        logger = new AppLog().getLogger();
     }
 
     public void serialEvent(SerialPortEvent event) {
@@ -32,6 +36,7 @@ public class PortReader implements SerialPortEventListener {
                 }
                 if (data.trim().matches("^\\d+: (RX|Neighbors).+:.+\\d+$")) {
                     ResultParser.parse(data);
+                    logger.info(data);
                     data = "";
                 }
                 //И снова отправляем запрос

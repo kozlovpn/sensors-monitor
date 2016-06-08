@@ -1,10 +1,16 @@
 package com.pkozlov.gui;
 
+import com.pkozlov.logger.AppLog;
 import com.pkozlov.serialport.ComPort;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
+import javafx.scene.chart.*;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import jssc.SerialNativeInterface;
 import javafx.application.Application;
@@ -23,7 +29,11 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import com.pkozlov.results.ResultParser;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.util.*;
 
 /**
  * Created by pavel on 5/29/16.
@@ -35,19 +45,30 @@ public class GUI extends Application {
     private Text voltage = new Text("Init...");
     private String DEGREE = "\u00b0С";
     private final Stage stageForEnterPort = new Stage();
+    private final ObservableList<String> chartOptions = FXCollections.observableArrayList(
+                    "Temperature",
+                    "Humidity"
+            );
+    private final ObservableList<String> periodOptions = FXCollections.observableArrayList(
+            "per hour",
+            "per day",
+            "per week"
+    );
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("MeshLogic Sensors Monitor");
         GridPane grid = new GridPane();
-        grid.setAlignment(Pos.CENTER);
+        //grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(30);
         grid.setPadding(new Insets(25, 25, 25, 25));
         //
         final Text scenetitle = new Text("Real time monitor");
         scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-        grid.add(scenetitle, 0, 0, 2, 1);
+        VBox vboxSceneTitle = new VBox(scenetitle);
+        vboxSceneTitle.setAlignment(Pos.CENTER);
+        grid.add(vboxSceneTitle, 0, 0, 3, 1);
 
         final Label tempLabel = new Label("Temperature:");
         tempLabel.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
@@ -89,14 +110,44 @@ public class GUI extends Application {
         HBox hbBtn = new HBox(10);
         hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
         hbBtn.getChildren().add(btn);
-        grid.add(hbBtn, 1, 4);
+        grid.add(hbBtn, 0, 4);
         final Text actiontarget = new Text();
-        grid.add(actiontarget, 0, 5, 2, 1);
+        grid.add(actiontarget, 1, 4, 2, 1);
         actiontarget.setFont(Font.font("Tahoma", FontWeight.LIGHT, 20));
         btn.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
                 actiontarget.setFill(Color.BLUE);
                 actiontarget.setText("Dew Point is " + calculateDewPoint() + DEGREE);
+            }
+        });
+        //
+        Text createChartLabel = new Text("Create chart");
+        createChartLabel.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        VBox vboxCreateChartLabel = new VBox(createChartLabel);
+        vboxCreateChartLabel.setAlignment(Pos.CENTER);
+        //createChartLabel.setTextAlignment(TextAlignment.CENTER);
+        grid.add(vboxCreateChartLabel, 0, 5, 3, 1);
+        final ComboBox chartList = new ComboBox(chartOptions);
+        chartList.setPromptText("Choose chart...");
+        chartList.setMaxWidth(200);
+        grid.add(chartList, 0, 6);
+        final ComboBox periodList = new ComboBox(periodOptions);
+        periodList.setPromptText("Choose period...");
+        periodList.setMaxWidth(200);
+        grid.add(periodList, 1, 6);
+        Button showChartBtn = new Button("Create chart");
+        grid.add(showChartBtn, 2, 6);
+        showChartBtn.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                if (chartList.getValue() != null && periodList.getValue() != null) {
+                    try {
+                        createChart(chartList.getValue().toString(), periodList.getValue().toString());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (ParseException ee) {
+                        ee.printStackTrace();
+                    }
+                }
             }
         });
 
@@ -131,7 +182,14 @@ public class GUI extends Application {
         ComPort.closePort();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Throwable {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.add(Calendar.DATE, -7);
+        for (int i = 0; i <= 6; i++) {
+            System.out.println("current date -7 days: " + AppLog.dateToString(cal.getTime()));
+            cal.add(Calendar.DATE, 1);
+        }
         launch(args);
     }
 
@@ -207,6 +265,64 @@ public class GUI extends Application {
         });
 
         stageForEnterPort.show();
+    }
+
+    public void createChart(String chart, String period) throws IOException, ParseException {
+        Stage primaryStage = new Stage();
+        primaryStage.setTitle(chart + " chart");
+        Map<Integer, Number> values;
+
+        NumberAxis x;
+        NumberAxis y;
+
+        if (chart.equalsIgnoreCase("temperature")) {
+            y = new NumberAxis();
+            y.setLabel(chart + ", " + DEGREE);
+        } else {
+            y = new NumberAxis(0, 100, 10);
+            y.setLabel(chart + ", %");
+        }
+
+        if (period.contains("hour")) {
+            x = new NumberAxis(0, 60, 5);
+            x.setLabel("Minutes");
+        } else if (period.contains("day")) {
+            x = new NumberAxis(0, 23, 1);
+            x.setLabel("Hours");
+        } else {
+            x = new NumberAxis(1, 7, 1);
+            x.setLabel("Number of day");
+        }
+
+        LineChart<Number, Number> numberLineChart = new LineChart<Number, Number>(x,y);
+        numberLineChart.setTitle(chart + " chart " + period);
+        XYChart.Series series1 = new XYChart.Series();
+        series1.setName(chart);
+        ObservableList<XYChart.Data> datas = FXCollections.observableArrayList();
+
+        if (period.contains("hour")) {
+            values = ResultParser.getValuesPerHourFromLog(chart.toLowerCase());
+            for (Integer key : values.keySet()) {
+                datas.add(new XYChart.Data(key, values.get(key)));
+            }
+        } else if (period.contains("day")) {
+            values = ResultParser.getValuesPerDayFromLog(chart.toLowerCase());
+            for (Integer key : values.keySet()) {
+                datas.add(new XYChart.Data(key, values.get(key)));
+            }
+        } else {
+            values = ResultParser.getValuesPerWeekFromLog(chart.toLowerCase());
+            System.out.println(values);
+            for (Integer key : values.keySet()) {
+                datas.add(new XYChart.Data(key + 1, values.get(key)));
+            }
+        }
+        series1.setData(datas);
+
+        Scene scene = new Scene(numberLineChart, 800, 700);
+        numberLineChart.getData().add(series1);
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
 
     private String calculateDewPoint() {
