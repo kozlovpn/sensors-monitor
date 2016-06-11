@@ -1,14 +1,15 @@
 package com.pkozlov.results;
 
 import com.pkozlov.logger.AppLog;
-import com.pkozlov.results.packets.NeighborhoodPacket;
-import com.pkozlov.results.packets.SensorPacket;
+import com.pkozlov.results.networkpackets.NeighborhoodPacket;
+import com.pkozlov.results.networkpackets.SensorPacket;
+import com.pkozlov.utils.CalculateUtils;
+import com.pkozlov.utils.DateUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.*;
 
@@ -95,18 +96,9 @@ public class ResultParser {
             }
         }
         for (Integer key : hourToValues.keySet()) {
-            hourToAverageValue.put(key, calculateAverage(hourToValues.get(key)));
+            hourToAverageValue.put(key, CalculateUtils.calculateAverage(hourToValues.get(key)));
         }
         return hourToAverageValue;
-    }
-
-    private static Number calculateAverage(List<String> list) throws ParseException {
-        DecimalFormat df = new DecimalFormat("0.00");
-        double sum = 0;
-        for (String value: list) {
-            sum += Double.valueOf(value);
-        }
-        return df.parse(df.format(sum / list.size()));
     }
 
     public static Map<Integer, Number> getValuesPerHourFromLog(String index) throws IOException, ParseException {
@@ -123,7 +115,7 @@ public class ResultParser {
             if (lines.get(i).contains("sensor")) {
                 String currentSensorLine = lines.get(i);
                 String dateForLine = lines.get(i - 1).substring(0, lines.get(i - 1).indexOf(" com"));
-                calForLine.setTime(new Date(dateForLine));
+                calForLine.setTime(DateUtils.stringToDate(dateForLine));
                 int hourForLine = calForLine.get(Calendar.HOUR);
                 String sensorPacket = currentSensorLine.substring(currentSensorLine.indexOf("INFO: ") + 6,
                         currentSensorLine.length());
@@ -148,7 +140,7 @@ public class ResultParser {
             }
         }
         for (Integer key : minuteToValues.keySet()) {
-            minuteToAverageValue.put(key, calculateAverage(minuteToValues.get(key)));
+            minuteToAverageValue.put(key, CalculateUtils.calculateAverage(minuteToValues.get(key)));
         }
         return minuteToAverageValue;
     }
@@ -162,7 +154,7 @@ public class ResultParser {
         cal.add(Calendar.DATE, -7);
 
         for (int i = 0; i <= 6; i++) {
-            sevenDates.add(AppLog.dateToString(cal.getTime()));
+            sevenDates.add(DateUtils.dateToString(cal.getTime()));
             cal.add(Calendar.DATE, 1);
         }
 
@@ -175,8 +167,8 @@ public class ResultParser {
         }
         sevenFiles.sort(new Comparator<File>() {
             public int compare(File o1, File o2) {
-                Date fileDate1 = AppLog.stringToDate(o1.getName().substring(o1.getName().indexOf("@") + 1, o1.getName().indexOf(".log")));
-                Date fileDate2 = AppLog.stringToDate(o2.getName().substring(o2.getName().indexOf("@") + 1, o2.getName().indexOf(".log")));
+                Date fileDate1 = DateUtils.stringToDate(o1.getName().substring(o1.getName().indexOf("@") + 1, o1.getName().indexOf(".log")));
+                Date fileDate2 = DateUtils.stringToDate(o2.getName().substring(o2.getName().indexOf("@") + 1, o2.getName().indexOf(".log")));
                 return fileDate1.compareTo(fileDate2);
             }
         });
@@ -212,7 +204,7 @@ public class ResultParser {
         }
         System.out.println(dayToValues);
         for (Integer key : dayToValues.keySet()) {
-            dayToAverageValue.put(key, calculateAverage(dayToValues.get(key)));
+            dayToAverageValue.put(key, CalculateUtils.calculateAverage(dayToValues.get(key)));
         }
         return dayToAverageValue;
     }

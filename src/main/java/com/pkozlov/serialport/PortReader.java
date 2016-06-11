@@ -27,7 +27,6 @@ public class PortReader implements SerialPortEventListener {
     public void serialEvent(SerialPortEvent event) {
         if(event.isRXCHAR() && event.getEventValue() > 0){
             try {
-                //Получаем ответ от устройства, обрабатываем данные и т.д.
                 try {
                     data += new String(serialPort.readBytes(event.getEventValue()), "UTF-8").trim().replaceAll("\n", "")
                             .replaceAll("\r", "");
@@ -39,8 +38,6 @@ public class PortReader implements SerialPortEventListener {
                     logger.info(data);
                     data = "";
                 }
-                //И снова отправляем запрос
-                //serialPort.writeString("Get data");
             }
             catch (SerialPortException ex) {
                 ex.printStackTrace();

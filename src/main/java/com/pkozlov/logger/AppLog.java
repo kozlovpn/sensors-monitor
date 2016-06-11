@@ -1,21 +1,17 @@
 package com.pkozlov.logger;
 
+import com.pkozlov.utils.DateUtils;
+
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import java.util.logging.*;
 
 /**
  * Created by pavel on 6/5/16.
  */
 public class AppLog {
 
-    private static final String loggerDir = "/home/pavel/Documents/SensorsMonitorLogs/";
+    private static final String loggerDir = "C:/SensorsMonitorLogs/";
     private static String pathToCurrentLogFile = "";
 
     public Logger getLogger() {
@@ -26,12 +22,12 @@ public class AppLog {
             File dir = new File(loggerDir);
             for (File lf : dir.listFiles()) {
                 String fileName = lf.getName();
-                if (fileName.substring(fileName.indexOf("@") + 1, fileName.indexOf(".log")).equals(getCurrentDate())) {
+                if (fileName.substring(fileName.indexOf("@") + 1, fileName.indexOf(".log")).equals(DateUtils.getCurrentDate())) {
                     pathToCurrentLogFile = loggerDir + lf.getName();
                 }
             }
             if (pathToCurrentLogFile.equals("")) {
-                File logFile = new File(loggerDir + "sensors-monitor@" + getCurrentDate() + ".log");
+                File logFile = new File(loggerDir + "sensors-monitor@" + DateUtils.getCurrentDate() + ".log");
                 logFile.createNewFile();
                 pathToCurrentLogFile = loggerDir + logFile.getName();
             }
@@ -51,31 +47,7 @@ public class AppLog {
         return loggerDir;
     }
 
-    public static String getCurrentDate() {
-        return dateToString(new Date());
-    }
-
     public static File getCurrentLogFile() {
         return new File(pathToCurrentLogFile);
-    }
-
-    public static String dateToString(Date date) {
-        DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
-        return df.format(date);
-    }
-
-    public static Date getHourMinuteSecond(Date date) throws ParseException {
-        DateFormat df = new SimpleDateFormat("HH:mm:ss");
-        return df.parse(df.format(date));
-    }
-
-    public static Date stringToDate(String dateString) {
-        DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
-        try {
-            return df.parse(dateString);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 }

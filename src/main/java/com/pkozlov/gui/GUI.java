@@ -1,7 +1,8 @@
 package com.pkozlov.gui;
 
-import com.pkozlov.logger.AppLog;
 import com.pkozlov.serialport.ComPort;
+import com.pkozlov.utils.CalculateUtils;
+import com.pkozlov.utils.DateUtils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
@@ -29,9 +30,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import com.pkozlov.results.ResultParser;
 
-import java.io.File;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.*;
 
@@ -117,7 +116,8 @@ public class GUI extends Application {
         btn.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
                 actiontarget.setFill(Color.BLUE);
-                actiontarget.setText("Dew Point is " + calculateDewPoint() + DEGREE);
+                actiontarget.setText("Dew Point is " + CalculateUtils.calculateDewPoint(ResultParser.sensorPacket.getTemperature(),
+                        ResultParser.sensorPacket.getHumidity()) + DEGREE);
             }
         });
         //
@@ -187,7 +187,7 @@ public class GUI extends Application {
         cal.setTime(new Date());
         cal.add(Calendar.DATE, -7);
         for (int i = 0; i <= 6; i++) {
-            System.out.println("current date -7 days: " + AppLog.dateToString(cal.getTime()));
+            System.out.println("current date -7 days: " + DateUtils.dateToString(cal.getTime()));
             cal.add(Calendar.DATE, 1);
         }
         launch(args);
@@ -323,16 +323,5 @@ public class GUI extends Application {
         numberLineChart.getData().add(series1);
         primaryStage.setScene(scene);
         primaryStage.show();
-    }
-
-    private String calculateDewPoint() {
-        DecimalFormat df = new DecimalFormat("0.00");
-        float temperature = ResultParser.sensorPacket.getTemperature();
-        float humidity = ResultParser.sensorPacket.getHumidity();
-        double a = 17.27;
-        double b = 237.7;
-        double func = (a * temperature / (b + temperature)) + Math.log(humidity / 100);
-        double d = b * func / (a - func);
-        return df.format(d);
     }
 }
