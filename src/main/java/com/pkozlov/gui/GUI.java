@@ -45,13 +45,13 @@ public class GUI extends Application {
     private String DEGREE = "\u00b0С";
     private final Stage stageForEnterPort = new Stage();
     private final ObservableList<String> chartOptions = FXCollections.observableArrayList(
-                    "Temperature",
-                    "Humidity"
+                    "Температура",
+                    "Влажность"
             );
     private final ObservableList<String> periodOptions = FXCollections.observableArrayList(
-            "per hour",
-            "per day",
-            "per week"
+            "за час",
+            "за день",
+            "за неделю"
     );
 
     @Override
@@ -63,13 +63,13 @@ public class GUI extends Application {
         grid.setVgap(30);
         grid.setPadding(new Insets(25, 25, 25, 25));
         //
-        final Text scenetitle = new Text("Real time monitor");
+        final Text scenetitle = new Text("Мониторинг в реальном времени");
         scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         VBox vboxSceneTitle = new VBox(scenetitle);
         vboxSceneTitle.setAlignment(Pos.CENTER);
         grid.add(vboxSceneTitle, 0, 0, 3, 1);
 
-        final Label tempLabel = new Label("Temperature:");
+        final Label tempLabel = new Label("Температура:");
         tempLabel.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         grid.add(tempLabel, 0, 1);
         temperature.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
@@ -83,7 +83,7 @@ public class GUI extends Application {
         //final PasswordField pwBox = new PasswordField();
         //grid.add(pwBox, 1, 2);
 
-        final Label humidityLabel = new Label("Humidity:");
+        final Label humidityLabel = new Label("Влажность:");
         humidityLabel.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         grid.add(humidityLabel, 0, 2);
         humidity.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
@@ -94,7 +94,7 @@ public class GUI extends Application {
             }
         });
 
-        final Label voltageLabel = new Label("Voltage:");
+        final Label voltageLabel = new Label("Вольтаж:");
         voltageLabel.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         grid.add(voltageLabel, 0, 3);
         voltage.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
@@ -105,7 +105,7 @@ public class GUI extends Application {
             }
         });
         //
-        Button btn = new Button("Calculate dew point");
+        Button btn = new Button("Рассчитать точку росы");
         HBox hbBtn = new HBox(10);
         hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
         hbBtn.getChildren().add(btn);
@@ -116,26 +116,26 @@ public class GUI extends Application {
         btn.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
                 actiontarget.setFill(Color.BLUE);
-                actiontarget.setText("Dew Point is " + CalculateUtils.calculateDewPoint(ResultParser.sensorPacket.getTemperature(),
+                actiontarget.setText("Точка росы: " + CalculateUtils.calculateDewPoint(ResultParser.sensorPacket.getTemperature(),
                         ResultParser.sensorPacket.getHumidity()) + DEGREE);
             }
         });
         //
-        Text createChartLabel = new Text("Create chart");
+        Text createChartLabel = new Text("Создать график");
         createChartLabel.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
         VBox vboxCreateChartLabel = new VBox(createChartLabel);
         vboxCreateChartLabel.setAlignment(Pos.CENTER);
         //createChartLabel.setTextAlignment(TextAlignment.CENTER);
         grid.add(vboxCreateChartLabel, 0, 5, 3, 1);
         final ComboBox chartList = new ComboBox(chartOptions);
-        chartList.setPromptText("Choose chart...");
+        chartList.setPromptText("График...");
         chartList.setMaxWidth(200);
         grid.add(chartList, 0, 6);
         final ComboBox periodList = new ComboBox(periodOptions);
-        periodList.setPromptText("Choose period...");
+        periodList.setPromptText("Период...");
         periodList.setMaxWidth(200);
         grid.add(periodList, 1, 6);
-        Button showChartBtn = new Button("Create chart");
+        Button showChartBtn = new Button("Создать");
         grid.add(showChartBtn, 2, 6);
         showChartBtn.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent event) {
@@ -199,16 +199,16 @@ public class GUI extends Application {
         grid2.setHgap(10);
         grid2.setVgap(30);
         grid2.setPadding(new Insets(10, 10, 10, 10));
-        final Scene scene1 = new Scene(grid2, 350, 120);
+        final Scene scene1 = new Scene(grid2, 380, 120);
 
         Label label = new Label();
         final Button button = new Button();
         GridPane.setHalignment(button, HPos.CENTER);
 
-        stageForEnterPort.setTitle("Connect device");
-        label.setText("Please connect MeshLogic device and try again!");
+        stageForEnterPort.setTitle("Подключите устройство");
+        label.setText("Пожалуйста подключите устройство MeshLogic!");
         grid2.add(label, 0, 0);
-        button.setText("Try again");
+        button.setText("Повторить");
         button.setMaxWidth(100);
         grid2.add(button, 0, 2);
         stageForEnterPort.setScene(scene1);
@@ -237,9 +237,9 @@ public class GUI extends Application {
         error.setFill(Color.RED);
         GridPane.setHalignment(button, HPos.CENTER);
 
-        stageForEnterPort.setTitle("Enter port name");
-        label.setText("Your computer has multiple serial port connections.\n" +
-                "Please enter the correct serial port name\nin which the MeshLogic device is connected:");
+        stageForEnterPort.setTitle("Введите имя порта");
+        label.setText("В ваш компьютер подключено несколько\nустройств через последовательный порт.\n" +
+                "Пожалуйста введите имя порта в который\nподключено устройство MeshLogic:");
         grid.add(label, 0, 0);
         grid.add(textField, 0, 1);
         button.setText("OK");
@@ -257,9 +257,9 @@ public class GUI extends Application {
                     ComPort.openPortAndGetData(portName);
                     stageForEnterPort.close();
                 } else if (portName.equals("")) {
-                    error.setText("Please enter port name!");
+                    error.setText("Пожалуйста введите имя порта!");
                 } else {
-                    error.setText("Invalid port name!");
+                    error.setText("Неправильное имя порта!");
                 }
             }
         });
@@ -269,43 +269,50 @@ public class GUI extends Application {
 
     public void createChart(String chart, String period) throws IOException, ParseException {
         Stage primaryStage = new Stage();
-        primaryStage.setTitle(chart + " chart");
         Map<Integer, Number> values;
+        String tempTitle = "График температуры ";
+        String humTitle = "График влажности ";
 
         NumberAxis x;
         NumberAxis y;
 
-        if (chart.equalsIgnoreCase("temperature")) {
+        if (chart.contains("Темп")) {
+            primaryStage.setTitle(tempTitle);
             y = new NumberAxis();
             y.setLabel(chart + ", " + DEGREE);
         } else {
+            primaryStage.setTitle(humTitle);
             y = new NumberAxis(0, 100, 10);
             y.setLabel(chart + ", %");
         }
 
-        if (period.contains("hour")) {
+        if (period.contains("час")) {
             x = new NumberAxis(0, 60, 5);
-            x.setLabel("Minutes");
-        } else if (period.contains("day")) {
+            x.setLabel("Минуты");
+        } else if (period.contains("день")) {
             x = new NumberAxis(0, 23, 1);
-            x.setLabel("Hours");
+            x.setLabel("Часы");
         } else {
             x = new NumberAxis(1, 7, 1);
-            x.setLabel("Number of day");
+            x.setLabel("Номер дня");
         }
 
         LineChart<Number, Number> numberLineChart = new LineChart<Number, Number>(x,y);
-        numberLineChart.setTitle(chart + " chart " + period);
+        if (chart.contains("Темп")) {
+            numberLineChart.setTitle(tempTitle + period);
+        } else {
+            numberLineChart.setTitle(humTitle + period);
+        }
         XYChart.Series series1 = new XYChart.Series();
         series1.setName(chart);
         ObservableList<XYChart.Data> datas = FXCollections.observableArrayList();
 
-        if (period.contains("hour")) {
+        if (period.contains("час")) {
             values = ResultParser.getValuesPerHourFromLog(chart.toLowerCase());
             for (Integer key : values.keySet()) {
                 datas.add(new XYChart.Data(key, values.get(key)));
             }
-        } else if (period.contains("day")) {
+        } else if (period.contains("день")) {
             values = ResultParser.getValuesPerDayFromLog(chart.toLowerCase());
             for (Integer key : values.keySet()) {
                 datas.add(new XYChart.Data(key, values.get(key)));

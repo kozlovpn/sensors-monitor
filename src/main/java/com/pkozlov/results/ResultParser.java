@@ -67,7 +67,7 @@ public class ResultParser {
         Map<Integer, Number> hourToAverageValue = new HashMap<Integer, Number>();
         Map<Integer, List<String>> hourToValues = new HashMap<Integer, List<String>>();
         Calendar calForLine = Calendar.getInstance();
-        boolean isTemp = index.equals("temperature");
+        boolean isTemp = index.equals("температура");
 
         for (int i = 0; i < lines.size(); i++) {
             if (lines.get(i).contains("sensor")) {
@@ -106,7 +106,7 @@ public class ResultParser {
         List<String> lines = Files.readAllLines(Paths.get(logFile.getAbsolutePath()));
         Map<Integer, Number> minuteToAverageValue = new HashMap<Integer, Number>();
         Map<Integer, List<String>> minuteToValues = new HashMap<Integer, List<String>>();
-        boolean isTemp = index.equals("temperature");
+        boolean isTemp = index.equals("температура");
 
         Calendar calForLine = Calendar.getInstance();
         int oneHourBackFromCurTime = calForLine.get(Calendar.HOUR) - 1;
@@ -115,7 +115,7 @@ public class ResultParser {
             if (lines.get(i).contains("sensor")) {
                 String currentSensorLine = lines.get(i);
                 String dateForLine = lines.get(i - 1).substring(0, lines.get(i - 1).indexOf(" com"));
-                calForLine.setTime(DateUtils.stringToDate(dateForLine));
+                calForLine.setTime(new Date(dateForLine));
                 int hourForLine = calForLine.get(Calendar.HOUR);
                 String sensorPacket = currentSensorLine.substring(currentSensorLine.indexOf("INFO: ") + 6,
                         currentSensorLine.length());
@@ -175,7 +175,7 @@ public class ResultParser {
 
         Map<Integer, Number> dayToAverageValue = new HashMap<Integer, Number>();
         Map<Integer, List<String>> dayToValues = new HashMap<Integer, List<String>>();
-        boolean isTemp = index.equals("temperature");
+        boolean isTemp = index.equals("температура");
         for (int j = 0; j < sevenFiles.size(); j++) {
             System.out.println("fileName: " + sevenFiles.get(j).getName());
             List<String> lines = Files.readAllLines(Paths.get(sevenFiles.get(j).getAbsolutePath()));
