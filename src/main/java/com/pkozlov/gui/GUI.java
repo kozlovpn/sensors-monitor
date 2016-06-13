@@ -3,8 +3,7 @@ package com.pkozlov.gui;
 import com.pkozlov.serialport.ComPort;
 import com.pkozlov.utils.CalculateUtils;
 import com.pkozlov.utils.DateUtils;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.collections.*;
 import javafx.geometry.HPos;
 import javafx.scene.chart.*;
 import javafx.scene.control.Button;
@@ -151,9 +150,35 @@ public class GUI extends Application {
             }
         });
 
-        Scene scene = new Scene(grid, 500, 475);
+        //
+        Text networkInfo = new Text("Сеть");
+        networkInfo.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        VBox vboxNetworkInfo = new VBox(networkInfo);
+        vboxNetworkInfo.setAlignment(Pos.CENTER);
+        grid.add(vboxNetworkInfo, 0, 7, 3, 1);
+        final ComboBox idsList = new ComboBox();
+        idsList.setPromptText("ID устройства...");
+        idsList.setMaxWidth(200);
+        grid.add(idsList, 0, 8);
+        Button netInfoBtn = new Button("Информация");
+        grid.add(netInfoBtn, 1, 8);
+        netInfoBtn.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(ActionEvent event) {
+                if (idsList.getValue() != null) {
+                    createNetInfoWindow(idsList.getValue().toString());
+                }
+            }
+        });
+
+        Scene scene = new Scene(grid, 500, 550);
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        ResultParser.neigborIds.addListener(new SetChangeListener<String>() {
+            public void onChanged(Change<? extends String> change) {
+                idsList.getItems().addAll(FXCollections.observableArrayList(ResultParser.neigborIds));
+            }
+        });
 
         ComPort.isNoDevices.addListener(new ChangeListener<Boolean>() {
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -328,6 +353,67 @@ public class GUI extends Application {
 
         Scene scene = new Scene(numberLineChart, 800, 700);
         numberLineChart.getData().add(series1);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    public void createNetInfoWindow(final String deviceId) {
+        Stage primaryStage = new Stage();
+        primaryStage.setTitle("Информация об устройстве " + deviceId);
+        final GridPane grid = new GridPane();
+        grid.setAlignment(Pos.BASELINE_LEFT);
+        grid.setHgap(10);
+        grid.setVgap(30);
+        grid.setPadding(new Insets(10, 10, 10, 10));
+
+        Text distanceLabel = new Text("Расстояние: ");
+        distanceLabel.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        grid.add(distanceLabel, 0, 0);
+        final Text distanceValue = new Text("Подождите...");
+        distanceValue.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        grid.add(distanceValue, 1, 0);
+
+        Text lQoutLabel = new Text("Качество вход. связи: ");
+        lQoutLabel.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        grid.add(lQoutLabel, 0, 1);
+        final Text lQoutValue = new Text();
+        lQoutValue.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        grid.add(lQoutValue, 1, 1);
+
+        Text lQinLabel = new Text("Качество исход. связи: ");
+        lQinLabel.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        grid.add(lQinLabel, 0, 2);
+        final Text lQinValue = new Text();
+        lQinValue.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        grid.add(lQinValue, 1, 2);
+
+        final String LAST_ACTIVE = "Последняя активность устройства %s секунд назад";
+        final Text elapseTimeLabel = new Text("Последняя активность устройства ");
+        elapseTimeLabel.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        grid.add(elapseTimeLabel, 0, 3, 3, 1);
+
+        ResultParser.deviceIdToValueSet.addListener(new MapChangeListener<String, String[]>() {
+            public void onChanged(Change<? extends String, ? extends String[]> change) {
+                lQoutValue.setText(ResultParser.deviceIdToValueSet.get(deviceId)[1] + "%");
+                lQinValue.setText(ResultParser.deviceIdToValueSet.get(deviceId)[2] + "%");
+                elapseTimeLabel.setText(String.format(LAST_ACTIVE, ResultParser.deviceIdToValueSet.get(deviceId)[4]));
+            }
+        });
+
+        ResultParser.deviceIdToRssi.get(deviceId).addListener(new ListChangeListener() {
+            public void onChanged(Change c) {
+                if (ResultParser.deviceIdToRssi.get(deviceId).size() == 5) {
+                    try {
+                        String distance = CalculateUtils.calculateDistance(CalculateUtils.calculateAverage(
+                                ResultParser.deviceIdToRssi.get(deviceId)));
+                        distanceValue.setText(distance + "м");
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    }
+                }
+            });
+        final Scene scene = new Scene(grid, 600, 250);
         primaryStage.setScene(scene);
         primaryStage.show();
     }

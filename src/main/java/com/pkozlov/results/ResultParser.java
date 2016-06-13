@@ -5,6 +5,10 @@ import com.pkozlov.results.networkpackets.NeighborhoodPacket;
 import com.pkozlov.results.networkpackets.SensorPacket;
 import com.pkozlov.utils.CalculateUtils;
 import com.pkozlov.utils.DateUtils;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +26,9 @@ public class ResultParser {
     public static NeighborhoodPacket neighborPacket = new NeighborhoodPacket();
     public static int neighborCount;
     public static String packet1;
+    public static ObservableSet<String> neigborIds = FXCollections.observableSet();
+    public static ObservableMap<String, ObservableList> deviceIdToRssi = FXCollections.observableHashMap();
+    public static ObservableMap<String, String[]> deviceIdToValueSet = FXCollections.observableHashMap();
 
     public static void parse(String packet) {
         packet1 = packet;
@@ -47,14 +54,19 @@ public class ResultParser {
                 neighborPacket.setlQin(Integer.valueOf(valueSet2[2]));
                 neighborPacket.setRssi(Integer.valueOf(valueSet2[3]));
                 neighborPacket.setElapseTime(Integer.valueOf(valueSet2[4]));
+                neigborIds.add(String.valueOf(neighborPacket.getSrcId()));
             } else if (packetSet[1].contains("Neighbors")) {
                 System.out.println(packet);
                 neighborCount = Integer.valueOf(getValue(packetSet[1]));
-                neighborPacket.setNodeId(Long.valueOf(valueSet[0]));
-                neighborPacket.setlQout(Integer.valueOf(valueSet[1]));
-                neighborPacket.setlQin(Integer.valueOf(valueSet[2]));
-                neighborPacket.setRssi(Integer.valueOf(valueSet[3]));
-                neighborPacket.setElapseTime(Integer.valueOf(valueSet[4]));
+                if (!deviceIdToRssi.containsKey(valueSet[0])) {
+                    deviceIdToRssi.put(valueSet[0], FXCollections.observableArrayList());
+                    deviceIdToRssi.get(valueSet[0]).add(valueSet[3]);
+                } else if (deviceIdToRssi.get(valueSet[0]).size() < 5) {
+                    deviceIdToRssi.get(valueSet[0]).add(valueSet[3]);
+                }
+                System.out.println(deviceIdToRssi.get(valueSet[0]));
+
+                deviceIdToValueSet.put(valueSet[0], valueSet);
             }
         } catch (NumberFormatException e) {
             //nothing to do
